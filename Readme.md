@@ -1,7 +1,7 @@
 # Личный проект «Шесть городов»
 
 * Студент: [Николай Рукин](https://up.htmlacademy.ru/nodejs-api/3/user/2101295).
-* Наставник: `Неизвестно`.
+* Наставник: [Дмитрий (sench) Железцов](https://htmlacademy.ru/profile/sench).
 
 ---
 
