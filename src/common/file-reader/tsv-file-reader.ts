@@ -41,6 +41,7 @@ export default class TSVFileReader implements FileReaderInterface {
         email,
         name,
         avatarUrl,
+        typeUser,
         countReviews,
         latitude,
         longitude
@@ -59,7 +60,7 @@ export default class TSVFileReader implements FileReaderInterface {
         maxAdults: Number.parseFloat(maxAdults),
         price: Number.parseFloat(price),
         conveniences: conveniences.split(';').map((el) => (el)),
-        user: {email, name, avatarUrl},
+        user: {email, name, avatarUrl, typeUser},
         countReviews: Number.parseFloat(countReviews),
         location: {latitude: Number.parseFloat(latitude), longitude: Number.parseFloat(longitude)},
       }));
