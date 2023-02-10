@@ -1,5 +1,5 @@
 import { City } from '../../types/city.type.js';
-import {MIN_PRICE, MAX_PRICE, MIN_RATING, MAX_RATING, MIN_ROOMS, MAX_ROMMS, MAX_GUESTS, MIN_GUESTS} from '../../common/offer-generator/offer-generator.const.js';
+//import {MIN_PRICE, MAX_PRICE, MIN_RATING, MAX_RATING, MIN_ROOMS, MAX_ROMMS, MAX_GUESTS, MIN_GUESTS} from '../../common/offer-generator/offer-generator.const.js';
 import typegoose, {
   defaultClasses,
   getModelForClass,
@@ -30,13 +30,13 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   public description!: string;
 
   @prop({required: true})
-  public postDate!: Date;
+  public date!: Date;
 
   @prop({required: true})
   public city!: City;
 
   @prop({required: true})
-  public preview!: string;
+  public previewImage!: string;
 
   @prop({required: true})
   public images!: string[];
@@ -47,32 +47,26 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   @prop({required: true})
   public isFavorite!: boolean;
 
-  @prop({required: true, min: MIN_RATING, max: MAX_RATING})
+  @prop({required: true})
   public rating!: number;
 
   @prop({
     required: true,
   })
-  public propertyType!: string;
+  public type!: string;
 
   @prop({
     required: true,
-    min: MIN_ROOMS,
-    max: MAX_ROMMS,
   })
   public bedrooms!: number;
 
   @prop({
     required: true,
-    min: MIN_GUESTS,
-    max: MAX_GUESTS,
   })
   public maxAdults!: number;
 
   @prop({
     required: true,
-    min: MIN_PRICE,
-    max: MAX_PRICE,
   })
   public price!: number;
 
@@ -89,7 +83,10 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   public countReviews!: number;
 
   @prop({required: true})
-  public location!: [number, number];
+  public location!: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export const OfferModel = getModelForClass(OfferEntity);

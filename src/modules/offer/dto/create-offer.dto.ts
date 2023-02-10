@@ -18,5 +18,8 @@ export default class CreateUserDTO {
   conveniences!: string[];
   user!: User;
   countReviews!: number;
-  location!: [number, number];
+  location!: {
+    latitude: number;
+    longitude: number;
+};
 }
