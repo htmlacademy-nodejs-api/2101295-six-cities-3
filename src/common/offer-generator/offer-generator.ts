@@ -1,9 +1,6 @@
 import dayjs from 'dayjs';
 import { MockData } from '../../types/mock-data.type.js';
 import {MIN_PRICE, MAX_PRICE, MIN_RATING, MAX_RATING, MIN_ROOMS, MAX_ROMMS, MAX_GUESTS, MIN_GUESTS, CityLocation, FIRST_WEEK_DAY, LAST_WEEK_DAY, conveniences, MIN_REVIEWS, MAX_REVIEWS} from './offer-generator.const.js';
-//import { HomeType } from '../../types/home-type.enum.js';
-//import { GoodType } from '../../types/good-type.enum.js';
-//import { UserType } from '../../types/user-type.enum.js';
 import { generateRandomValue, getRandomItem, getRandomItems } from '../../utils/random.js';
 import { OfferGeneratorInterface } from './offer-generator.interface.js';
 
