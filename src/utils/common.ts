@@ -1,4 +1,4 @@
-//import { OfferType } from '../types/offer-type.enum.js';
+import crypto from 'crypto';
 import { Offer } from '../types/offer.type.js';
 export const createOffer = (row: string) => {
   const tokens = row.replace('\n', '').split('\t');
@@ -50,3 +50,8 @@ export const createOffer = (row: string) => {
 
 export const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : '';
+
+export const createSHA256 = (line: string, salt: string): string => {
+  const shaHasher = crypto.createHmac('sha256', salt);
+  return shaHasher.update(line).digest('hex');
+};

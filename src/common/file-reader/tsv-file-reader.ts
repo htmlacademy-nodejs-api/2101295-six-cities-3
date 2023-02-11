@@ -1,7 +1,5 @@
 import EventEmitter from 'events';
 import { createReadStream } from 'fs';
-//import { OfferType } from '../../types/offer-type.enum.js';
-//import { Offer } from '../../types/offer.type.js';
 import { FileReaderInterface } from './file-reader.interface.js';
 
 export default class TSVFileReader extends EventEmitter implements FileReaderInterface {
@@ -28,7 +26,9 @@ export default class TSVFileReader extends EventEmitter implements FileReaderInt
         lineRead = lineRead.slice(++endLinePosition);
         importedRowCount++;
 
-        this.emit('line', completeRow);
+        await new Promise((resolve) => {
+          this.emit('line', completeRow, resolve);
+        });
       }
     }
 
