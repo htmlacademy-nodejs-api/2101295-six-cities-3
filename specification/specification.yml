@@ -1,0 +1,599 @@
+openapi: 3.0.2
+info:
+  title: API сервер для проекта «Шесть городов».
+  description: |-
+    * Список ресурсов и маршрутов сервера «Шесть городов».
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 2.0.0
+tags:
+  - name: users
+    description: Действия с пользователем.
+  - name: offers
+    description: Действия с предложениями.
+  - name: reviews
+    description: Действия с комментариями.
+
+paths:
+  # ---------------------- USERS PATHS ----------------------
+
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Регистрация пользователя
+      description: Регистрирует нового пользователя.
+
+      requestBody:
+        description: Информация для создания нового пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/createUser"
+        required: true
+
+      responses:
+        "201":
+          description: Пользователь зарегистрирован. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+
+        "409":
+          description: Пользователь с таким email уже существует.
+
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Авторизоваться на сервере
+      description: Отправляет авторизационные данные пользователя (логин и пароль).
+
+      requestBody:
+        description: Объект, содержащий логин и пароль пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userLogin"
+        required: true
+
+      responses:
+        "201":
+          description: Статус авторизации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userLoginInfo"
+
+        "400":
+          description: Ошибка тела запроса
+
+    get:
+      tags:
+        - users
+      summary: Проверка состояния пользователя
+      description: Возвращает информацию по авторизованному пользователю
+
+      responses:
+        "201":
+          description: Пользователь найден. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+
+        "401":
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/authErrorMessage"
+
+  /users/{userId}/avatar:
+    post:
+      tags:
+        - users
+      summary: Загрузить изображение аватара
+      description: Загружает изображение аватара пользователя. Изображение
+        аватара должно быть в формате `png` или `jpg`.
+
+      responses:
+        "201":
+          description: Изображение загружено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+
+  # ---------------------- OFFERS PATHS ----------------------
+
+  /offers:
+    post:
+      tags:
+        - offers
+      summary: Создание предложения
+      description: Создает новое предложение.
+
+      requestBody:
+        description: Информация для создания нового предложения.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/offer"
+        required: true
+
+      responses:
+        "201":
+          description: Предложение создано. Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/offer"
+
+        "400":
+          description: Проверьте наличие ошибок в предложении.
+
+        "401":
+          description: Создавать предложения могут только авторизованные клиенты.
+
+    get:
+      tags:
+        - offers
+      summary: Получить список предложений
+      description: Возвращает массив предложений. Каждое предложение описано в виде объекта.
+
+      responses:
+        "200":
+          description: Массив предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: "#/components/schemas/offer"
+                    - type: object
+
+  /offers/{OfferId}:
+    patch:
+      tags:
+        - offers
+      summary: Редактирование предложения
+      description: Редактирует предложение.
+
+      requestBody:
+        description: Информация по редактируемому предложению.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/offer"
+        required: true
+
+      responses:
+        "201":
+          description: Предложение было отредактировано. Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/offer"
+        "409":
+          description: Предложение попытался отредактировать пользователь, не создавший данное предложение.
+
+    get:
+      tags:
+        - offers
+      summary: Получить предложение
+      description: Возвращает предложение с идентификатором `id`.
+
+      parameters:
+      - name: offerId
+        in: path
+        description: Уникальный идентификатор предложения
+        required: true
+        schema:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+      responses:
+        "200":
+          description: Объект предложения
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/offer"
+        '404':
+          description: Предложение не найдено
+
+    delete:
+      tags:
+        - offers
+      summary: Удаление предложения
+      description: Удаляет предложение.
+
+      requestBody:
+        description: Предложение удалено
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/deleteOffer"
+        required: true
+
+      responses:
+        "204":
+          description: Предложение было удалено. Объект удаленного предложения.
+
+        "401":
+          description: Предложение попытался удалить неавторизованный пользователь.
+
+        "404":
+          description: Предложение не было найдено.
+
+  /offers/{OfferId}/reviews:
+    get:
+      tags:
+        - reviews
+      summary: Получение комментариев по предложению
+      description: Получает комментарии по предложению.
+      responses:
+        "201":
+          description: Получены комментарии по выбранному предложению.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/review"
+
+  /offers/{userId}/favorite:
+    get:
+      tags:
+        - offers
+      summary: Получить список избранных предложений.
+      description: Возвращает массив предложений, добавленных в избранное.
+
+      responses:
+        "201":
+          description: Массив предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offer'
+
+  /offers/{userId}/favorite/{offerId}/{status}:
+    parameters:
+      - in: path
+        name: offerId
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+
+    post:
+      tags:
+        - offers
+      summary: Изменить статус избранного у предложение
+      description: Возвращает предложение с идентификатором hotelId с актуальным состоянием поля isFavorite
+
+      responses:
+        "200":
+          description: Объект предложения.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/offer'
+
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authErrorMessage'
+
+  # ---------------------- REVIEWS PATHS ----------------------
+  /reviews:
+    post:
+      tags:
+        - reviews
+      summary: Добавить новый комментарий
+      description: Добавляет новый комментарий для предложения с идентификатором hotelId.
+
+      requestBody:
+        description: Объект с новым комментарием
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/review'
+        required: true
+
+      responses:
+        '200':
+          description: Массив комментариев для предложения с идентификатором `hotelId`
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/review'
+        '400':
+          description: Ошибка тела запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFoundErrorMessage'
+
+        '401':
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authErrorMessage'
+
+  /reviews/{hotelId}:
+      get:
+        tags:
+          - reviews
+        summary: Получить список комментариев
+        description: Возвращает список комментариев для предложения с идентификатором `hotelId`.
+
+        responses:
+          '200':
+            description: Массив комментариев
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/review'
+          '400':
+            description: Ошибка тела запроса
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/notFoundErrorMessage'
+components:
+  # ---------------------- USERS COMPONENTS----------------------
+
+  schemas:
+    createUser:
+      type: object
+
+      properties:
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+
+        name:
+          type: string
+          example: Keks
+
+        typeUser:
+          type: string
+          example: pro
+
+        password:
+          type: string
+          example: 123456
+
+    user:
+      type: object
+
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+
+        name:
+          type: string
+          example: Keks
+
+        avatarUrl:
+          type: string
+          example: http://six-cities/static/default-avatar.jpg
+
+        typeUser:
+          type: string
+          example: pro
+
+    userLogin:
+      type: object
+
+      properties:
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+
+        password:
+          type: string
+          example: 123456
+
+    userLoginInfo:
+      type: object
+
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRvcmFuczExQG92ZXJsb29rLm5ldCIsImlkIjoiNjNlNDhlOTNiNzM0MmM0YTIzNTkwOWM2IiwiaWF0IjoxNjc1OTIzMzIyLCJleHAiOjE2NzYwOTYxMjJ9.B_34dYm177btTaNZws9KSubIQ3bGuwpwrZNcsE92bxM
+
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+
+        name:
+          type: string
+          example: Keks
+
+        avatarUrl:
+          type: string
+          example: http://six-cities/static/default-avatar.jpg
+
+        typeUser:
+          type: string
+          example: pro
+
+    # ---------------------- OFFERS COMPONENTS----------------------
+
+    deleteOffer:
+      type: object
+
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        title:
+          type: string
+          example: Портал Белуха
+
+        userId:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+
+    offer:
+      type: object
+
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        title:
+          type: string
+          example: Портал Белуха
+
+        description:
+          type: string
+          example: Апартаменты посуточно и на долгий срок.
+
+        city:
+          type: object
+          example:
+            {
+              latitudeCity: 53.3547792,
+              longitudeCity: 83.7697832,
+              nameCity: Барнаул;
+            }
+
+        previewImage:
+          type: string
+          example: preview-image1.jpg
+
+        images:
+          type: array
+          example:
+            [
+              "detail-image1.jpg",
+              "detail-image2.jpg",
+              "detail-image3.jpg",
+              "detail-image4.jpg",
+              "detail-image5.jpg",
+              "detail-image6.jpg",
+            ]
+
+        isPremium:
+          type: boolean
+          example: true
+
+        isFavorite:
+          type: boolean
+          example: true
+
+        rating:
+          type: number
+          example: 5
+
+        type:
+          type: string
+          example: apartment
+
+        bedrooms:
+          type: number
+          example: 5
+
+        maxAdults:
+          type: number
+          example: 5
+
+        price:
+          type: number
+          example: 50000
+
+        conveniences:
+          type: array
+          example:
+            [
+              "Breakfast",
+              "Air conditioning",
+              "Laptop friendly workspace",
+              "Baby seat",
+              "Washer",
+              "Towels",
+              "Fridge",
+            ]
+
+        userId:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        countReviews:
+          type: number
+          example: 5
+
+        location:
+          type: object
+          example:
+            {
+              latitude: 53.3547792,
+              longitude: 83.7697832,
+            }
+
+
+    # ---------------------- COMMENTS COMPONENTS----------------------
+
+    review:
+      type: object
+
+      properties:
+        comment:
+          type: string
+          example: Квартиру отличает функциональный интерьер
+
+        date:
+          type: string
+          example: 12.05.2022
+
+        rating:
+          type: number
+          example: 5
+
+        userId:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+    notFoundErrorMessage:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Hotel id 999 does not exist
+
+    authErrorMessage:
+      type: object
+
+      properties:
+        error:
+          type: string
+          example:
+            {
+              "error": "You are not logged."
+            }
