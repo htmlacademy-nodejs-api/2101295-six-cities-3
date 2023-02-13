@@ -5,9 +5,9 @@ import OfferService from './offer.service.js';
 import { OfferServiceInterface } from './offer-service.interface.js';
 import { types } from '@typegoose/typegoose';
 
-const rentOfferContainer = new Container();
+const offerContainer = new Container();
 
-rentOfferContainer.bind<OfferServiceInterface>(Component.OfferServiceInterface).to(OfferService);
-rentOfferContainer.bind<types.ModelType<OfferEntity>>(Component.OfferModel).toConstantValue(OfferModel);
+offerContainer.bind<OfferServiceInterface>(Component.OfferServiceInterface).to(OfferService);
+offerContainer.bind<types.ModelType<OfferEntity>>(Component.OfferModel).toConstantValue(OfferModel);
 
-export {rentOfferContainer};
+export {offerContainer};

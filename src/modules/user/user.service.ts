@@ -5,6 +5,7 @@ import {UserEntity} from './user.entity.js';
 import {UserServiceInterface} from './user-service.interface.js';
 import {LoggerInterface} from '../../common/logger/logger.interface.js';
 import {Component} from '../../types/component.types.js';
+import UpdateUserDTO from './dto/update-user.dto.js';
 
 
 @injectable()
@@ -36,5 +37,12 @@ export default class UserService implements UserServiceInterface {
     }
 
     return this.create(dto, salt);
+  }
+
+  public async updateById(userId: string, dto: UpdateUserDTO): Promise<DocumentType<UserEntity>> {
+    return this.userModel
+      .findByIdAndUpdate(userId, dto, {new: true})
+      .populate(['userId'])
+      .exec();
   }
 }
