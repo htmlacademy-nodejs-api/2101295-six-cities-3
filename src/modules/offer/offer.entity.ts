@@ -3,19 +3,21 @@ import { City } from '../../types/city.type.js';
 import typegoose, {
   defaultClasses,
   getModelForClass,
-  Ref
+  //Ref
 } from '@typegoose/typegoose';
-import { UserEntity } from '../user/user.entity.js';
+//import { UserEntity } from '../user/user.entity.js';
 
 const {prop, modelOptions} = typegoose;
 
-export interface RentOfferEntity extends defaultClasses.Base {}
+
+export interface OfferEntity extends defaultClasses.Base {}
 
 @modelOptions({
   schemaOptions: {
     collection: 'offers'
   }
 })
+
 export class OfferEntity extends defaultClasses.TimeStamps {
   @prop({
     trim: true,
@@ -75,9 +77,8 @@ export class OfferEntity extends defaultClasses.TimeStamps {
 
   @prop({
     required: true,
-    ref: UserEntity
   })
-  public user!: Ref<UserEntity>;
+  public userId!: string;
 
   @prop({default: 0})
   public countReviews!: number;

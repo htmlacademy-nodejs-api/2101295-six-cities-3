@@ -2,12 +2,13 @@ import { City } from '../../../types/city.type.js';
 import { User } from '../../../types/user.type.js';
 
 export default class UpdateOfferDto {
-  title?: string;
-  description?: string;
-  date?: Date;
-  city?: City;
-  previewImage?: string;
-  images?: string[];
+  public id!: string;
+  public title?: string;
+  public description?: string;
+  public date?: Date;
+  public city?: City;
+  public previewImage?: string;
+  public images?: string[];
   isPremium?: boolean;
   isFavorite?: boolean;
   rating?: number;
