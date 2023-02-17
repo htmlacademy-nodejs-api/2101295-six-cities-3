@@ -1,25 +1,27 @@
 import {inject, injectable} from 'inversify';
 import CreateUserDTO from './dto/create-user.dto.js';
-import {DocumentType, types} from '@typegoose/typegoose';
+import {DocumentType} from '@typegoose/typegoose';
 import {UserEntity} from './user.entity.js';
 import {UserServiceInterface} from './user-service.interface.js';
 import {LoggerInterface} from '../../common/logger/logger.interface.js';
 import {Component} from '../../types/component.types.js';
 import UpdateUserDTO from './dto/update-user.dto.js';
+import { ModelType } from '@typegoose/typegoose/lib/types.js';
 
 
 @injectable()
 export default class UserService implements UserServiceInterface {
   constructor(
     @inject(Component.LoggerInterface) private logger: LoggerInterface,
-    @inject(Component.UserModel) private readonly userModel: types.ModelType<UserEntity>
+    @inject(Component.UserModel) private readonly userModel: ModelType<UserEntity>
   ) {}
 
   public async create(dto: CreateUserDTO, salt: string): Promise<DocumentType<UserEntity>> {
     const user = new UserEntity(dto);
     user.setPassword(dto.password, salt);
-
+    console.log(user);
     const result = await this.userModel.create(user);
+    console.log(result);
     this.logger.info(`New user created: ${user.email}`);
 
     return result;
@@ -39,10 +41,9 @@ export default class UserService implements UserServiceInterface {
     return this.create(dto, salt);
   }
 
-  public async updateById(userId: string, dto: UpdateUserDTO): Promise<DocumentType<UserEntity>> {
+  public async updateById(userId: string, dto: UpdateUserDTO): Promise<DocumentType<UserEntity> | null> {
     return this.userModel
       .findByIdAndUpdate(userId, dto, {new: true})
-      .populate(['userId'])
       .exec();
   }
 }

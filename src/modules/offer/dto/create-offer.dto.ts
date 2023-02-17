@@ -1,5 +1,4 @@
 import { City } from '../../../types/city.type';
-import { User } from '../../../types/user.type';
 
 export default class CreateUserDTO {
   title!: string;
@@ -16,7 +15,7 @@ export default class CreateUserDTO {
   maxAdults!: number;
   price!: number;
   conveniences!: string[];
-  user!: User;
+  userId!: string;
   countReviews!: number;
   location!: {
     latitude: number;
