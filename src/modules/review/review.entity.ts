@@ -16,7 +16,10 @@ export class ReviewEntity extends defaultClasses.TimeStamps {
     trim: true,
     required: true
   })
-  public text!: string;
+  public comment!: string;
+
+  @prop({required: true })
+  public rating!: number;
 
   @prop({
     ref: OfferEntity,
