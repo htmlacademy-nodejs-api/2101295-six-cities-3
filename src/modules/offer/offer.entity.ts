@@ -3,8 +3,10 @@ import { City } from '../../types/city.type.js';
 import typegoose, {
   defaultClasses,
   getModelForClass,
+  Ref,
   //Ref
 } from '@typegoose/typegoose';
+import { UserEntity } from '../user/user.entity.js';
 //import { UserEntity } from '../user/user.entity.js';
 
 const {prop, modelOptions} = typegoose;
@@ -78,7 +80,7 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   @prop({
     required: true,
   })
-  public userId!: string;
+  public userId!: Ref<UserEntity>;
 
   @prop({default: 0})
   public countReviews!: number;

@@ -6,14 +6,16 @@ import {HttpMethod} from '../../types/http-method.enum.js';
 import {Request, Response} from 'express';
 import CreateOfferDto from './dto/create-offer.dto.js';
 import * as core from 'express-serve-static-core';
-//import { StatusCodes } from 'http-status-codes';
+import { ValidateObjectIdMiddleware } from '../../common/middlewares/validate-object.middleware.js';
 import { OfferServiceInterface } from './offer-service.interface.js';
 import { fillDTO } from '../../utils/common.js';
 import OffersResponse from './response/offer.response.js';
 import { StatusCodes } from 'http-status-codes';
 import HttpError from '../../common/errors/http-error.js';
 import UpdateOfferDto from './dto/update-offer.dto.js';
-//import HttpError from '../../common/errors/http-error.js';
+import { ReviewServiceInterface } from '../review/review-service.interface.js';
+import ReviewResponse from '../review/response/review.response.js';
+import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.middleware.js';
 
 type ParamsGetOffer = {
   offerId: string;
@@ -24,16 +26,48 @@ export default class OfferController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
     @inject(Component.OfferServiceInterface) private readonly offerService: OfferServiceInterface,
-
+    @inject(Component.ReviewServiceInterface) private readonly reviewService: ReviewServiceInterface
   ) {
     super(logger);
     this.logger.info('Register routes for OfferController…');
 
     this.addRoute({path: '/', method: HttpMethod.Get, handler: this.index});
-    this.addRoute({path: '/:offerId', method: HttpMethod.Get, handler: this.show});
-    this.addRoute({path: '/', method: HttpMethod.Post, handler: this.create});
-    this.addRoute({path: '/', method: HttpMethod.Put, handler: this.update});
-    this.addRoute({path: '/:offerId', method: HttpMethod.Delete, handler: this.delete});
+    this.addRoute({
+      path: '/', method:
+      HttpMethod.Post,
+      handler: this.create,
+      middlewares: [
+        new ValidateDtoMiddleware(CreateOfferDto),
+      ]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Patch,
+      handler: this.update,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateDtoMiddleware(UpdateOfferDto),
+      ]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Get,
+      handler: this.show,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.delete,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId')]
+    });
+    this.addRoute({
+      path: '/:offerId/comments',
+      method: HttpMethod.Get,
+      handler: this.getReviews,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')]
+    });
   }
 
 
@@ -75,25 +109,22 @@ export default class OfferController extends Controller {
   }
 
   public async update(
-    {body}: Request<Record<string, unknown>, Record<string, unknown>, UpdateOfferDto>,
-    res: Response): Promise<void> {
+    {body, params}: Request<core.ParamsDictionary | ParamsGetOffer, Record<string, unknown>, UpdateOfferDto>,
+    res: Response
+  ): Promise<void> {
+    const updatedOffer = await this.offerService.updateById(params.offerId, body);
 
-    const existOffer = await this.offerService.findById(body.id);
-    if (!existOffer) {
+    if (!updatedOffer) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Offer with id «${body.id}» doesn't exist.`,
+        `Offer with id ${params.offerId} not found.`,
         'OfferController'
       );
     }
 
-    const result = await this.offerService.updateById(body.id, body);
-    this.send(
-      res,
-      StatusCodes.OK,
-      fillDTO(OffersResponse, result)
-    );
+    this.ok(res, fillDTO(OffersResponse, updatedOffer));
   }
+
 
   public async delete(
     { params }: Request<core.ParamsDictionary | ParamsGetOffer>,
@@ -110,7 +141,24 @@ export default class OfferController extends Controller {
       );
     }
 
+    await this.reviewService.deleteByOfferId(offerId);
     this.noContent(res, offer);
+  }
+
+  public async getReviews(
+    {params}: Request<core.ParamsDictionary | ParamsGetOffer, object, object>,
+    res: Response
+  ): Promise<void> {
+    if (!await this.offerService.exists(params.offerId)) {
+      throw new HttpError(
+        StatusCodes.NOT_FOUND,
+        `Offer with id ${params.offerId} not found.`,
+        'OfferController'
+      );
+    }
+
+    const comments = await this.reviewService.findByOfferId(params.offerId);
+    this.ok(res, fillDTO(ReviewResponse, comments));
   }
 
 }
