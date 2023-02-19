@@ -106,4 +106,16 @@ GET http://localhost:4000/offers/63efa1758fa89d7c572e0f92/comments HTTP/1.1
 
 ###
 
+## Отправка аватарки пользователю
+
+POST http://localhost:4000/users/63ef576c899585f505a2f98b/avatar HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="test.jpg"
+Content-Type: image/png
+
+< C:\Users\Николай\Desktop\test.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
 
