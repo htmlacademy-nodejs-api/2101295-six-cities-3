@@ -16,6 +16,7 @@ import { ReviewServiceInterface } from '../review/review-service.interface.js';
 import ReviewResponse from '../review/response/review.response.js';
 import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.middleware.js';
 import { DocumentExistsMiddleware } from '../../common/middlewares/document-exists.middleware.js';
+import { PrivateRouteMiddleware } from '../../common/middlewares/private-route.middleware.js';
 
 type ParamsGetOffer = {
   offerId: string;
@@ -37,6 +38,7 @@ export default class OfferController extends Controller {
       HttpMethod.Post,
       handler: this.create,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateDtoMiddleware(CreateOfferDto),
       ]
     });
@@ -45,6 +47,7 @@ export default class OfferController extends Controller {
       method: HttpMethod.Patch,
       handler: this.update,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new ValidateDtoMiddleware(UpdateOfferDto),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
@@ -64,6 +67,7 @@ export default class OfferController extends Controller {
       method: HttpMethod.Delete,
       handler: this.delete,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
       ]
@@ -80,8 +84,19 @@ export default class OfferController extends Controller {
   }
 
 
-  public async index(_req: Request, res: Response): Promise<void> {
+  public async index(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const offers = await this.offerService.find();
+
+    const {user} = req;
+    if (!user) {
+      offers.forEach((offer) => {
+        offer.isFavorite = false;
+      });
+    }
+
     const offerResponse = fillDTO(OffersResponse, offers);
     this.send(res, StatusCodes.OK, offerResponse);
   }
@@ -98,11 +113,12 @@ export default class OfferController extends Controller {
 
 
   public async create(
-    {body}: Request<Record<string, unknown>, CreateOfferDto>,
+    req: Request<Record<string, unknown>, Record<string, unknown>, CreateOfferDto>,
     res: Response,
   ): Promise<void> {
 
-    const result = await this.offerService.create(body);
+    const {body, user} = req;
+    const result = await this.offerService.create({...body, userId: user.id});
     this.send(
       res,
       StatusCodes.CREATED,

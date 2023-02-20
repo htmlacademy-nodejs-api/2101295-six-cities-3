@@ -12,6 +12,7 @@ import { fillDTO } from '../../utils/common.js';
 import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import ReviewResponse from './response/review.response.js';
 import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.middleware.js';
+import {PrivateRouteMiddleware} from '../../common/middlewares/private-route.middleware.js';
 
 @injectable()
 export default class ReviewController extends Controller {
@@ -30,13 +31,16 @@ export default class ReviewController extends Controller {
       handler: this.create,
       middlewares: [
         new ValidateDtoMiddleware(CreateReviewDto),
+        new PrivateRouteMiddleware(),
       ]});
   }
 
   public async create(
-    {body}: Request<object, object, CreateReviewDto>,
+    req: Request<object, object, CreateReviewDto>,
     res: Response
   ): Promise<void> {
+
+    const {body} = req;
     if (!await this.offerService.exists(body.offerId)) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
@@ -44,7 +48,7 @@ export default class ReviewController extends Controller {
         'CommentController'
       );
     }
-    const comment = await this.reviewService.create(body);
+    const comment = await this.reviewService.create({...body, userId: req.user.id});
     await this.offerService.incCommentCount(body.offerId);
     this.created(res, fillDTO(ReviewResponse, comment));
   }
