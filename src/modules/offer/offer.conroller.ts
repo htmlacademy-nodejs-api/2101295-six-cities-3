@@ -17,9 +17,14 @@ import ReviewResponse from '../review/response/review.response.js';
 import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.middleware.js';
 import { DocumentExistsMiddleware } from '../../common/middlewares/document-exists.middleware.js';
 import { PrivateRouteMiddleware } from '../../common/middlewares/private-route.middleware.js';
+import HttpError from '../../common/errors/http-error.js';
 
 type ParamsGetOffer = {
   offerId: string;
+}
+
+type ParamsGetOfferByCity = {
+  city: string;
 }
 
 @injectable()
@@ -73,13 +78,18 @@ export default class OfferController extends Controller {
       ]
     });
     this.addRoute({
-      path: '/:offerId/comments',
+      path: '/:offerId/reviews',
       method: HttpMethod.Get,
       handler: this.getReviews,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
       ]
+    });
+    this.addRoute({
+      path: '/premium/:city',
+      method: HttpMethod.Get,
+      handler: this.getPremium
     });
   }
 
@@ -107,7 +117,6 @@ export default class OfferController extends Controller {
   ): Promise<void> {
     const { offerId } = params;
     const offer = await this.offerService.findById(offerId);
-
     this.ok(res, fillDTO(OffersResponse, offer));
   }
 
@@ -127,24 +136,49 @@ export default class OfferController extends Controller {
   }
 
   public async update(
-    {body, params}: Request<core.ParamsDictionary | ParamsGetOffer, Record<string, unknown>, UpdateOfferDto>,
+    req: Request,
     res: Response
   ): Promise<void> {
-    const updatedOffer = await this.offerService.updateById(params.offerId, body);
+    const updatedOffer = await this.offerService.findById(req.params.offerId);
+    if (updatedOffer?.userId?.toString() !== req.user.id) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'You cannot edit this offer!',
+        'OfferController',
+      );
+    }
 
-    this.ok(res, fillDTO(OffersResponse, updatedOffer));
+    const result = await this.offerService.updateById(req.params.offerId, req.body);
+    this.ok(res, fillDTO(OffersResponse, result));
   }
 
 
   public async delete(
-    { params }: Request<core.ParamsDictionary | ParamsGetOffer>,
+    req: Request,
     res: Response
   ): Promise<void> {
-    const { offerId } = params;
+    const deletedOffer = await this.offerService.findById(req.params.offerId);
+    if (deletedOffer?.userId?.toString() !== req.user.id) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'You cannot delete this offer!',
+        'OfferController',
+      );
+    }
+    const { offerId } = req.params;
     const offer = await this.offerService.deleteById(offerId);
 
     await this.reviewService.deleteByOfferId(offerId);
     this.noContent(res, offer);
+  }
+
+  public async getPremium(
+    {params}: Request<core.ParamsDictionary | ParamsGetOfferByCity, object, object>,
+    res: Response): Promise<void> {
+    const premiumOffer = await this.offerService.findPremium();
+    const result = premiumOffer.filter((offer) => offer.city.nameCity === params.city);
+    this.ok(res, fillDTO(OffersResponse, result)
+    );
   }
 
   public async getReviews(
@@ -154,5 +188,4 @@ export default class OfferController extends Controller {
     const comments = await this.reviewService.findByOfferId(params.offerId);
     this.ok(res, fillDTO(ReviewResponse, comments));
   }
-
 }

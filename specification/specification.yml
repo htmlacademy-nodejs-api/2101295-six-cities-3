@@ -40,7 +40,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/user"
-
+        "400":
+          description: Ошибка тела запроса
         "409":
           description: Пользователь с таким email уже существует.
 
@@ -106,6 +107,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/user"
+        "401":
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authErrorMessage'
+
+  /users/favorite:
+    get:
+      tags:
+        - offers
+      summary: Получить список избранных предложений.
+      description: Возвращает массив предложений, добавленных в избранное.
+
+      responses:
+        "201":
+          description: Массив предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offer'
+        "401":
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authErrorMessage'
+
+  /users/favorite/{offerId}:
+    parameters:
+      - in: path
+        name: offerId
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+
+    post:
+      tags:
+        - offers
+      summary: Изменить статус избранного у предложение
+      description: Возвращает предложение с актуальным состоянием поля isFavorite
+
+      responses:
+        "200":
+          description: Объект предложения.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/offer'
+
+        "401":
+          description: Пользователь не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authErrorMessage'
+        "404":
+          description: Предложение не найдено.
+
 
   # ---------------------- OFFERS PATHS ----------------------
 
@@ -133,10 +197,10 @@ paths:
                 $ref: "#/components/schemas/offer"
 
         "400":
-          description: Проверьте наличие ошибок в предложении.
+          description: Вернется объект с ошибками.
 
         "401":
-          description: Создавать предложения могут только авторизованные клиенты.
+          description: Вернется 'Unauthorized'.
 
     get:
       tags:
@@ -179,14 +243,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/offer"
-        "409":
-          description: Предложение попытался отредактировать пользователь, не создавший данное предложение.
+        "401":
+          description: Вернется 'Unauthorized'.
+        "403":
+          description: Вернется 'You cannot edit this offer!', обявление может редактировать только его автор.
+        "404":
+          description: Предложение не найдено.
 
     get:
       tags:
         - offers
       summary: Получить предложение
-      description: Возвращает предложение с идентификатором `id`.
+      description: Возвращает предложение с детальной информацией.
 
       parameters:
       - name: offerId
@@ -204,8 +272,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/offer"
-        '404':
-          description: Предложение не найдено
+        "404":
+          description: Предложение не найдено.
 
     delete:
       tags:
@@ -224,12 +292,12 @@ paths:
       responses:
         "204":
           description: Предложение было удалено. Объект удаленного предложения.
-
         "401":
-          description: Предложение попытался удалить неавторизованный пользователь.
-
+          description: Вернется 'Unauthorized'.
+        "403":
+          description: Вернется 'You cannot delete this offer!', обявление может редактировать только его автор.
         "404":
-          description: Предложение не было найдено.
+          description: Предложение не найдено.
 
   /offers/{OfferId}/reviews:
     get:
@@ -246,54 +314,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/review"
-
-  /offers/{userId}/favorite:
+        "404":
+          description: Предложение не найдено.
+  /offers/premium/{city}:
     get:
       tags:
-        - offers
-      summary: Получить список избранных предложений.
-      description: Возвращает массив предложений, добавленных в избранное.
-
+        - rentaloffers
+      summary: Получение списка предложений по аренде
       responses:
-        "201":
-          description: Массив предложений.
+        "200":
+          description: Массив предложений
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/offer'
+                  type: object
+                  allOf:
+                    - $ref: "#/components/schemas/offer"
+                    - type: object
 
-  /offers/{userId}/favorite/{offerId}/{status}:
-    parameters:
-      - in: path
-        name: offerId
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-
-    post:
-      tags:
-        - offers
-      summary: Изменить статус избранного у предложение
-      description: Возвращает предложение с идентификатором hotelId с актуальным состоянием поля isFavorite
-
-      responses:
-        "200":
-          description: Объект предложения.
-          content:
-            application/json:
-              schema:
-                type: object
-                $ref: '#/components/schemas/offer'
-
-        '401':
-          description: Пользователь не авторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/authErrorMessage'
 
   # ---------------------- REVIEWS PATHS ----------------------
   /reviews:
@@ -326,13 +366,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/notFoundErrorMessage'
-
-        '401':
-          description: Пользователь не авторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/authErrorMessage'
+        "401":
+          description: Вернется 'Unauthorized'.
 
   /reviews/{hotelId}:
       get:
@@ -356,6 +391,8 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/notFoundErrorMessage'
+          "404":
+            description: Предложение не найдено.
 components:
   # ---------------------- USERS COMPONENTS----------------------
 
