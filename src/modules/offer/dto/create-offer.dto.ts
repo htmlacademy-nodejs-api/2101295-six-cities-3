@@ -1,5 +1,5 @@
 import { City } from '../../../types/city.type';
-import { IsString, IsArray, IsDateString, IsBoolean, IsEnum, IsInt, Max, MaxLength, Min, MinLength, ArrayMinSize, ArrayMaxSize, IsObject } from 'class-validator';
+import { IsString, IsArray, IsDateString, IsBoolean, IsInt, Max, MaxLength, Min, MinLength, ArrayMinSize, ArrayMaxSize, IsObject } from 'class-validator';
 
 export default class CreateOfferDTO {
   @MinLength(10, {message: 'Minimum title length must be 10'})
@@ -34,12 +34,12 @@ export default class CreateOfferDTO {
   @Max(5, {message: 'Maximum rating is 5'})
   public rating!: number;
 
-  @IsEnum({message: 'type must be only Apartment, House, Room or Hotel'})
+  @IsString({message: 'type must be only Apartment, House, Room or Hotel'})
   public type!: string;
 
   @IsInt({message: 'Rooms number must be an integer'})
-  @Min(1, {message: 'Minimum rating is 1'})
-  @Max(8, {message: 'Maximum price is 8'})
+  @Min(1, {message: 'Minimum is 1'})
+  @Max(8, {message: 'Maximum is 8'})
   public bedrooms!: number;
 
   @IsInt({message: 'Rooms number must be an integer'})

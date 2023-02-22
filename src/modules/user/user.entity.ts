@@ -1,6 +1,7 @@
 import {User} from '../../types/user.type.js';
 import typegoose, {getModelForClass, defaultClasses} from '@typegoose/typegoose';
 import {createSHA256} from '../../utils/common.js';
+//import { OfferEntity } from '../offer/offer.entity.js';
 
 const {prop, modelOptions} = typegoose;
 
@@ -30,6 +31,9 @@ export class UserEntity extends defaultClasses.TimeStamps implements User {
 
   @prop({required: true, default: ''})
   public name!: string;
+
+  @prop()
+  public favoritesOffers!: string[];
 
   @prop({required: true, default: ''})
   public typeUser!: string;

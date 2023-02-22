@@ -18,4 +18,5 @@ export default class UpdateUserDTO {
   @IsString({message: 'password is required'})
   @Length(6, 12, {message: 'Min length for password is 6, max is 12'})
   public password?: string;
+
 }

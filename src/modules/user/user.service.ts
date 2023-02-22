@@ -9,7 +9,6 @@ import UpdateUserDTO from './dto/update-user.dto.js';
 import { ModelType } from '@typegoose/typegoose/lib/types.js';
 import LoginUserDto from './dto/login-user.dto.js';
 
-
 @injectable()
 export default class UserService implements UserServiceInterface {
   constructor(
@@ -20,9 +19,7 @@ export default class UserService implements UserServiceInterface {
   public async create(dto: CreateUserDTO, salt: string): Promise<DocumentType<UserEntity>> {
     const user = new UserEntity(dto);
     user.setPassword(dto.password, salt);
-    console.log(user);
     const result = await this.userModel.create(user);
-    console.log(result);
     this.logger.info(`New user created: ${user.email}`);
 
     return result;
@@ -30,6 +27,20 @@ export default class UserService implements UserServiceInterface {
 
   public async findByEmail(email: string): Promise<DocumentType<UserEntity> | null> {
     return this.userModel.findOne({email});
+  }
+
+  public async addFavorite(userId: string, offerId: string): Promise<DocumentType<UserEntity> | null> {
+    const offersAfter = await this.userModel.findById(userId);
+    const availabilityId = offersAfter?.favoritesOffers.find((el) => el === offerId);
+    let offersBefore: string[] | undefined = [];
+
+    if (availabilityId) {
+      offersBefore = offersAfter?.favoritesOffers.filter((el) => el !== offerId);
+    } else {offersBefore = offersAfter?.favoritesOffers.concat(offerId);}
+
+    return this.userModel
+      .findByIdAndUpdate(userId, {'$set': {favoritesOffers: offersBefore}})
+      .exec();
   }
 
   public async findOrCreate(dto: CreateUserDTO, salt: string): Promise<DocumentType<UserEntity>> {
