@@ -1,9 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { City } from '../../../types/city.type.js';
 import UserResponse from '../../user/response/user.response.js';
-//import UserResponse from '../../user/response/user.response.js';
-//import { User } from '../../../types/user.type.js';
-
 
 export default class OffersResponse {
   @Expose()

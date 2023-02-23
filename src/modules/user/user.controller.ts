@@ -22,6 +22,10 @@ import { DocumentExistsMiddleware } from '../../common/middlewares/document-exis
 import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import OffersResponse from '../offer/response/offer.response.js';
 
+enum ParamsValidate {
+  Offer = 'offer',
+  OfferId = 'OfferId'
+}
 
 @injectable()
 export default class UserController extends Controller {
@@ -66,7 +70,7 @@ export default class UserController extends Controller {
       handler: this.addFavorite,
       middlewares: [
         new PrivateRouteMiddleware(),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({

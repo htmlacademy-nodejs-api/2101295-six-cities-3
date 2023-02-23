@@ -27,6 +27,11 @@ type ParamsGetOfferByCity = {
   city: string;
 }
 
+enum ParamsValidate {
+  Offer = 'offer',
+  OfferId = 'OfferId'
+}
+
 @injectable()
 export default class OfferController extends Controller {
   constructor(
@@ -53,9 +58,9 @@ export default class OfferController extends Controller {
       handler: this.update,
       middlewares: [
         new PrivateRouteMiddleware(),
-        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
         new ValidateDtoMiddleware(UpdateOfferDto),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -63,8 +68,8 @@ export default class OfferController extends Controller {
       method: HttpMethod.Get,
       handler: this.show,
       middlewares: [
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -73,8 +78,8 @@ export default class OfferController extends Controller {
       handler: this.delete,
       middlewares: [
         new PrivateRouteMiddleware(),
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -82,8 +87,8 @@ export default class OfferController extends Controller {
       method: HttpMethod.Get,
       handler: this.getReviews,
       middlewares: [
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({

@@ -1,16 +1,12 @@
 import { City } from '../../types/city.type.js';
-//import {MIN_PRICE, MAX_PRICE, MIN_RATING, MAX_RATING, MIN_ROOMS, MAX_ROMMS, MAX_GUESTS, MIN_GUESTS} from '../../common/offer-generator/offer-generator.const.js';
 import typegoose, {
   defaultClasses,
   getModelForClass,
   Ref,
-  //Ref
 } from '@typegoose/typegoose';
 import { UserEntity } from '../user/user.entity.js';
-//import { UserEntity } from '../user/user.entity.js';
 
 const {prop, modelOptions} = typegoose;
-
 
 export interface OfferEntity extends defaultClasses.Base {}
 

@@ -1,22 +1,34 @@
 export const conveniences = ['Breakfast', 'Air conditioning', 'Laptop friendly workspace', 'Baby seat', 'Washer', 'Towels', 'Fridge'];
 
-export const MIN_PRICE = 100;
-export const MAX_PRICE = 100000;
+export enum OfferPrice {
+  Min = 100,
+  Max = 100000,
+}
 
-export const MIN_RATING = 1;
-export const MAX_RATING = 5;
+export enum OfferRating {
+  Min = 1,
+  Max = 5,
+}
 
-export const MIN_ROOMS = 1;
-export const MAX_ROMMS = 8;
+export enum OfferRoomsCount {
+  Min = 1,
+  Max = 8,
+}
 
-export const MIN_GUESTS = 1;
-export const MAX_GUESTS = 10;
+export enum OfferGuestsCount {
+  Min = 1,
+  Max = 10,
+}
 
-export const FIRST_WEEK_DAY = 1;
-export const LAST_WEEK_DAY = 7;
+export enum WeekDay {
+  First = 1,
+  Last = 10,
+}
 
-export const MIN_REVIEWS = 0;
-export const MAX_REVIEWS = 15;
+export enum ReviewsCount {
+  Min =0,
+  Max = 15,
+}
 
 export const CityLocation = {
   Paris: ['48.85661 2.351499'],
