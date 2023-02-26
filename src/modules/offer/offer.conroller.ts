@@ -18,6 +18,7 @@ import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.mid
 import { DocumentExistsMiddleware } from '../../common/middlewares/document-exists.middleware.js';
 import { PrivateRouteMiddleware } from '../../common/middlewares/private-route.middleware.js';
 import HttpError from '../../common/errors/http-error.js';
+import { ConfigInterface } from '../../common/config/config.interface.js';
 
 type ParamsGetOffer = {
   offerId: string;
@@ -27,14 +28,20 @@ type ParamsGetOfferByCity = {
   city: string;
 }
 
+enum ParamsValidate {
+  Offer = 'offer',
+  OfferId = 'offerId',
+}
+
 @injectable()
 export default class OfferController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
     @inject(Component.OfferServiceInterface) private readonly offerService: OfferServiceInterface,
-    @inject(Component.ReviewServiceInterface) private readonly reviewService: ReviewServiceInterface
+    @inject(Component.ReviewServiceInterface) private readonly reviewService: ReviewServiceInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface
   ) {
-    super(logger);
+    super(logger, configService);
     this.logger.info('Register routes for OfferController…');
 
     this.addRoute({path: '/', method: HttpMethod.Get, handler: this.index});
@@ -53,9 +60,9 @@ export default class OfferController extends Controller {
       handler: this.update,
       middlewares: [
         new PrivateRouteMiddleware(),
-        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
         new ValidateDtoMiddleware(UpdateOfferDto),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -63,8 +70,8 @@ export default class OfferController extends Controller {
       method: HttpMethod.Get,
       handler: this.show,
       middlewares: [
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -73,8 +80,8 @@ export default class OfferController extends Controller {
       handler: this.delete,
       middlewares: [
         new PrivateRouteMiddleware(),
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -82,8 +89,8 @@ export default class OfferController extends Controller {
       method: HttpMethod.Get,
       handler: this.getReviews,
       middlewares: [
-        new ValidateObjectIdMiddleware('offerId'),
-        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+        new ValidateObjectIdMiddleware(ParamsValidate.OfferId),
+        new DocumentExistsMiddleware(this.offerService, ParamsValidate.Offer, ParamsValidate.OfferId),
       ]
     });
     this.addRoute({
@@ -140,7 +147,7 @@ export default class OfferController extends Controller {
     res: Response
   ): Promise<void> {
     const updatedOffer = await this.offerService.findById(req.params.offerId);
-    if (updatedOffer?.userId?.toString() !== req.user.id) {
+    if (updatedOffer?.userId?.id.toString() !== req.user.id) {
       throw new HttpError(
         StatusCodes.FORBIDDEN,
         'You cannot edit this offer!',
@@ -158,7 +165,7 @@ export default class OfferController extends Controller {
     res: Response
   ): Promise<void> {
     const deletedOffer = await this.offerService.findById(req.params.offerId);
-    if (deletedOffer?.userId?.toString() !== req.user.id) {
+    if (deletedOffer?.userId?.id.toString() !== req.user.id) {
       throw new HttpError(
         StatusCodes.FORBIDDEN,
         'You cannot delete this offer!',

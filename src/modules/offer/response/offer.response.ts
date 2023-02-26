@@ -1,11 +1,13 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { City } from '../../../types/city.type.js';
+import { HomeType } from '../../../types/home-type.enum.js';
 import UserResponse from '../../user/response/user.response.js';
-//import UserResponse from '../../user/response/user.response.js';
-//import { User } from '../../../types/user.type.js';
-
 
 export default class OffersResponse {
+  @Expose({ name: '_id'})
+  @Transform((value) => value.obj._id.toString())
+  public id!: string;
+
   @Expose()
   public title!: string;
 
@@ -34,7 +36,7 @@ export default class OffersResponse {
   public rating!: number;
 
   @Expose()
-  public type!: string;
+  public type!: HomeType;
 
   @Expose()
   public bedrooms!: number;

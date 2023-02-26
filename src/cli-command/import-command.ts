@@ -9,6 +9,7 @@ import {OfferServiceInterface} from '../modules/offer/offer-service.interface.js
 import UserService from '../modules/user/user.service.js';
 import OfferService from '../modules/offer/offer.service.js';
 import {OfferModel} from '../modules/offer/offer.entity.js';
+import {ReviewServiceInterface} from '../modules/review/review-service.interface.js';
 import {UserModel} from '../modules/user/user.entity.js';
 import {Offer} from '../types/offer.type.js';
 import {LoggerInterface} from '../common/logger/logger.interface.js';
@@ -24,14 +25,15 @@ export default class ImportCommand implements CliCommandInterface {
   private databaseService!: DatabaseInterface;
   private logger: LoggerInterface;
   private salt!: string;
+  private reviewServise!: ReviewServiceInterface;
 
   constructor() {
     this.onLine = this.onLine.bind(this);
     this.onComplete = this.onComplete.bind(this);
 
     this.logger = new ConsoleLoggerService();
-    this.offerService = new OfferService(this.logger, OfferModel);
-    this.userService = new UserService(this.logger, UserModel);
+    this.offerService = new OfferService(this.logger, OfferModel, this.reviewServise);
+    this.userService = new UserService(this.logger, UserModel, OfferModel);
     this.databaseService = new DatabaseService(this.logger);
   }
 

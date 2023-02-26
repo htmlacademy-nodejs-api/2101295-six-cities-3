@@ -17,4 +17,7 @@ export default class ReviewResponse {
 
   @Expose()
   public rating!: number;
+
+  @Expose()
+  public text!: string;
 }

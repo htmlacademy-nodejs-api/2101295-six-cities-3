@@ -1,4 +1,5 @@
 import { IsEmail, IsString, Length, IsOptional, IsObject } from 'class-validator';
+import { UserType } from '../../../types/user.type.js';
 
 export default class UpdateUserDTO {
   @IsString({message: 'name is required'})
@@ -13,7 +14,7 @@ export default class UpdateUserDTO {
   public avatarUrl?: string;
 
   @IsObject({message: 'typeUser must be'})
-  public typeUser?: string;
+  public typeUser?: UserType;
 
   @IsString({message: 'password is required'})
   @Length(6, 12, {message: 'Min length for password is 6, max is 12'})

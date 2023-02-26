@@ -8,16 +8,19 @@ import {Component} from '../../types/component.types.js';
 import UpdateUserDTO from './dto/update-user.dto.js';
 import { ModelType } from '@typegoose/typegoose/lib/types.js';
 import LoginUserDto from './dto/login-user.dto.js';
+import { OfferEntity } from '../offer/offer.entity.js';
+import { DEFAULT_AVATAR_FILE_NAME } from './user.constant.js';
 
 @injectable()
 export default class UserService implements UserServiceInterface {
   constructor(
     @inject(Component.LoggerInterface) private logger: LoggerInterface,
-    @inject(Component.UserModel) private readonly userModel: ModelType<UserEntity>
+    @inject(Component.UserModel) private readonly userModel: ModelType<UserEntity>,
+    @inject(Component.OfferModel) private readonly offerModel: ModelType<OfferEntity>
   ) {}
 
   public async create(dto: CreateUserDTO, salt: string): Promise<DocumentType<UserEntity>> {
-    const user = new UserEntity(dto);
+    const user = new UserEntity({...dto, avatarUrl: DEFAULT_AVATAR_FILE_NAME});
     user.setPassword(dto.password, salt);
     const result = await this.userModel.create(user);
     this.logger.info(`New user created: ${user.email}`);
@@ -30,17 +33,19 @@ export default class UserService implements UserServiceInterface {
   }
 
   public async addFavorite(userId: string, offerId: string): Promise<DocumentType<UserEntity> | null> {
-    const offersAfter = await this.userModel.findById(userId);
-    const availabilityId = offersAfter?.favoritesOffers.find((el) => el === offerId);
-    let offersBefore: string[] | undefined = [];
+    const user = await this.userModel.findById(userId);
+    const offersBefore = user?.favoritesOffers;
+    const availabilityId = offersBefore?.find((el) => el === offerId);
+    let offersAfter: string[] | undefined = [];
 
     if (availabilityId) {
-      offersBefore = offersAfter?.favoritesOffers.filter((el) => el !== offerId);
-    } else {offersBefore = offersAfter?.favoritesOffers.concat(offerId);}
-
-    return this.userModel
-      .findByIdAndUpdate(userId, {'$set': {favoritesOffers: offersBefore}})
+      offersAfter = offersBefore?.filter((el) => el !== offerId);
+    } else {offersAfter = offersBefore?.concat(offerId);}
+    this.userModel
+      .findByIdAndUpdate(userId, {'$set': {favoritesOffers: offersAfter}}, {new: true})
       .exec();
+
+    return this.offerModel.findById(offerId);
   }
 
   public async findOrCreate(dto: CreateUserDTO, salt: string): Promise<DocumentType<UserEntity>> {
