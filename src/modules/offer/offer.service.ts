@@ -60,14 +60,6 @@ export default class OfferService implements OfferServiceInterface {
       .exec();
   }
 
-  // public async findFavorite(offersId: string[]): Promise<DocumentType<OfferEntity>[]> {
-  //   const getOffers = offersId.map((id) =>
-  //     this.offerModel.findById(id).populate(['userId'])
-  //       .exec()
-  //   );
-  //   return getOffers;
-  // }
-
   public async setFavoriteStatus(offerId: string, {isFavorite}: UpdateOfferDto): Promise<DocumentType<OfferEntity> | null> {
     return this.offerModel
       .findByIdAndUpdate(offerId, {'$set': {isFavorite}}).exec();

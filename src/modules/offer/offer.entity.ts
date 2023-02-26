@@ -5,6 +5,7 @@ import typegoose, {
   Ref,
 } from '@typegoose/typegoose';
 import { UserEntity } from '../user/user.entity.js';
+import { HomeType } from '../../types/home-type.enum.js';
 
 const {prop, modelOptions} = typegoose;
 
@@ -44,16 +45,17 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   @prop({required: true})
   public isPremium!: boolean;
 
-  @prop({required: true})
+  @prop()
   public isFavorite!: boolean;
 
-  @prop({required: true})
+  @prop()
   public rating!: number;
 
   @prop({
-    required: true,
+    type: () => String,
+    enum: HomeType
   })
-  public type!: string;
+  public type!: HomeType;
 
   @prop({
     required: true,
@@ -74,6 +76,7 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   public conveniences!: string[];
 
   @prop({
+    ref: UserEntity,
     required: true,
   })
   public userId!: Ref<UserEntity>;

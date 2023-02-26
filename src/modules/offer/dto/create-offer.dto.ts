@@ -27,13 +27,6 @@ export default class CreateOfferDTO {
   @IsBoolean({message: 'IsPremium must be an boolean'})
   public isPremium!: boolean;
 
-  @IsBoolean({message: 'IsFavorites must be an boolean'})
-  public isFavorite!: boolean;
-
-  @Min(1, {message: 'Minimum rating is 1'})
-  @Max(5, {message: 'Maximum rating is 5'})
-  public rating!: number;
-
   @IsString({message: 'type must be only Apartment, House, Room or Hotel'})
   public type!: string;
 

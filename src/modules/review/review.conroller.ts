@@ -13,6 +13,7 @@ import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import ReviewResponse from './response/review.response.js';
 import { ValidateDtoMiddleware } from '../../common/middlewares/validate-dto.middleware.js';
 import {PrivateRouteMiddleware} from '../../common/middlewares/private-route.middleware.js';
+import { ConfigInterface } from '../../common/config/config.interface.js';
 
 @injectable()
 export default class ReviewController extends Controller {
@@ -20,13 +21,15 @@ export default class ReviewController extends Controller {
     @inject(Component.LoggerInterface) logger: LoggerInterface,
     @inject(Component.ReviewServiceInterface) private readonly reviewService: ReviewServiceInterface,
     @inject(Component.OfferServiceInterface) private readonly offerService: OfferServiceInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface
+
   ) {
-    super(logger);
+    super(logger, configService);
     this.logger.info('Register routes for UserController…');
 
     this.logger.info('Register routes for CommentController...');
     this.addRoute({
-      path: '/',
+      path: '/:offerId',
       method: HttpMethod.Post,
       handler: this.create,
       middlewares: [
@@ -36,20 +39,20 @@ export default class ReviewController extends Controller {
   }
 
   public async create(
-    req: Request<object, object, CreateReviewDto>,
+    req: Request,
     res: Response
   ): Promise<void> {
 
-    const {body} = req;
-    if (!await this.offerService.exists(body.offerId)) {
+    const offer = await this.offerService.findById(req.params.offerId);
+    if (!offer) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Offer with id ${body.offerId} not found.`,
+        `Offer with id ${offer} not found.`,
         'CommentController'
       );
     }
-    const comment = await this.reviewService.create({...body, userId: req.user.id});
-    await this.offerService.incCommentCount(body.offerId);
+    const comment = await this.reviewService.create({...req.body, userId: req.user.id, offerId: offer.id});
+    await this.offerService.incCommentCount(offer.id);
     this.created(res, fillDTO(ReviewResponse, comment));
   }
 }

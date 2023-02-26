@@ -21,10 +21,11 @@ import { PrivateRouteMiddleware } from '../../common/middlewares/private-route.m
 import { DocumentExistsMiddleware } from '../../common/middlewares/document-exists.middleware.js';
 import { OfferServiceInterface } from '../offer/offer-service.interface.js';
 import OffersResponse from '../offer/response/offer.response.js';
+import UploadUserAvatarResponse from './response/upload-user-avatar.response.js';
 
 enum ParamsValidate {
   Offer = 'offer',
-  OfferId = 'OfferId'
+  OfferId = 'offerId',
 }
 
 @injectable()
@@ -32,10 +33,10 @@ export default class UserController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
     @inject(Component.UserServiceInterface) private readonly userService: UserServiceInterface,
-    @inject(Component.ConfigInterface) private readonly configService: ConfigInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface,
     @inject(Component.OfferServiceInterface) private readonly offerService: OfferServiceInterface
   ) {
-    super(logger);
+    super(logger, configService);
     this.logger.info('Register routes for UserController…');
 
     this.addRoute({
@@ -74,7 +75,12 @@ export default class UserController extends Controller {
       ]
     });
     this.addRoute({
-      path: '/favorite',
+      path: '/logout',
+      method: HttpMethod.Delete,
+      handler: this.logout
+    });
+    this.addRoute({
+      path: '/favorites',
       method: HttpMethod.Get,
       handler: this.getFavorite,
       middlewares: [
@@ -85,7 +91,25 @@ export default class UserController extends Controller {
 
   public async addFavorite(req: Request, res: Response): Promise<void> {
     const result = await this.userService.addFavorite(req.user.id, req.params.offerId);
-    return this.ok(res, fillDTO(UserResponse, result));
+    this.send(
+      res,
+      StatusCodes.OK,
+      fillDTO(OffersResponse, result)
+    );
+  }
+
+  public async logout(req: Request,res: Response,): Promise<void> {
+
+    const user = await this.userService.findByEmail(req.user.email);
+
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.CONFLICT,
+        `User with email ${req.body.email} not exists.`,
+        'UserController'
+      );
+    }
+    this.ok(res, fillDTO(LoggedUserResponse, user));
   }
 
   public async create(
@@ -135,21 +159,34 @@ export default class UserController extends Controller {
 
   public async checkAuthenticate(req: Request, res: Response) {
     const user = await this.userService.findByEmail(req.user.email);
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.CONFLICT,
+        `User with email ${req.body.email} not exists.`,
+        'UserController'
+      );
+    }
     this.ok(res, fillDTO(LoggedUserResponse, user));
   }
 
   public async uploadAvatar(req: Request, res: Response) {
-    this.created(res, {
-      filepath: req.file?.path
-    });
+    const {userId} = req.params;
+    const uploaFile = {avatarUrl: req.file?.filename};
+    await this.userService.updateById(userId, uploaFile);
+    this.created(res, fillDTO(UploadUserAvatarResponse, uploaFile));
   }
 
   public async getFavorite(req: Request, res: Response): Promise<void> {
     const user = await this.userService.findByEmail(req.user.email);
     const offersId = user?.favoritesOffers;
     const allOffers = await this.offerService.find();
-    const result = allOffers.filter((el) => offersId?.includes(el.id));
-    this.ok(res, fillDTO(OffersResponse, result)
-    );
+    const offersFavorites = allOffers.filter((el) => offersId?.includes(el.id));
+    const result = offersFavorites.map((offer) => {
+      for(const el in offer) {
+        if (el === 'isFavorite') {
+          offer[el] = true;
+        }
+      } return offer;});
+    this.ok(res, fillDTO(OffersResponse, result));
   }
 }
